@@ -1,16 +1,20 @@
-import csv
+import pandas as pd
 
 def openfile(inputfile):
-    with open(inputfile, 'r',encoding='utf-8') as csv_file:
-        csv_reader = csv.reader(csv_file)
-        next(csv_reader)
-        category = []
-        categoryset = []
-        for row in csv_reader:
-            category = row[0]
-            categoryset.append({category: 1})
-        itemset=[]
-        itemset.append(categoryset)
-        print(itemset)
+    data = pd.read_csv(inputfile, encoding='utf-8')
+    data = str(data).lower().replace(" ", "")
+    return data
 
-openfile('superstore.csv')
+def generate_shingles(data, k):
+    n = len(data)
+    shingles = []
+    for i in range(n-k+1):
+        shingle = ''.join(data[i:i+k])
+        shingles.append(shingle)
+    return shingles
+
+data = openfile('superstore.csv')
+shingled_data = generate_shingles(data, 3)
+
+print(shingled_data)
+
