@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import JSON, create_engine, Column, Integer, String
 from sqlalchemy.orm import declarative_base
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -37,5 +37,6 @@ class Superstore(Base):
     Year = Column(Integer)
     Market2 = Column(String)
     weeknum = Column(Integer)
-    Shin_Prod_Name = Column(String)
+    product_shingle = Column(String)
+    product_minhash = Column(JSON)
 Base.metadata.create_all(engine)
