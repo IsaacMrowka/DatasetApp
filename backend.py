@@ -18,7 +18,7 @@ def search():
 
     for i in range(4):
         minhash = session.query(Superstore).filter(Superstore.Row_ID == i).first()    
-        if minhash in minhash.product_minhash:
+        if minhash in minhash.Product_Name:
             if query_input == minhash:
                 return jsonify(minhash.Category)
 
