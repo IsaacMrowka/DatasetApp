@@ -16,11 +16,13 @@ def search():
     data = request.get_json
     query_input = data.get('query')
 
+    results = []
     for i in range(4):
-        minhash = session.query(Superstore).filter(Superstore.Row_ID == i).first()    
-        if minhash in minhash.Product_Name:
-            if query_input == minhash:
-                return jsonify(minhash.Category)
+        product_name = session.query(Superstore).filter(Superstore.Row_ID == i).first()    
+        if product_name and query_input == product_name:
+            results.append(product_name.Category)
+    
+    return jsonify(results)
 
 #compare and save data from DB that matches query
 #return jsonify that frontend will ask for
