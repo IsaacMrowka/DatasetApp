@@ -8,7 +8,8 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app, origins=["http://localhost:3000"] ,supports_credentials=True)  # Enable CORS for all routes
+
 
 #fetches the search query from frontend
 @app.route('/search', methods=['POST'])
@@ -17,7 +18,7 @@ def search():
     query_input = data.get('query', '')
 
     results = []
-    for i in range(4):
+    for i in range(100):
         product = session.query(Superstore).filter(Superstore.Row_ID == i).first()
         if product and query_input.lower() in product.Product_Name.lower():
             results.append(product.Category)
@@ -30,7 +31,7 @@ def search():
 
 #for now only returns category
 #next change to send more data and send data only from minhash with threshold higher than 't'
-    
+
 
 def jaccard(doc, i, j):
     set1 = set(doc[i])

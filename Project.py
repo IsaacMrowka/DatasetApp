@@ -71,7 +71,7 @@ def shingle(k=3):
 
 
 data = openfile('superstore.csv') 
-#csv_to_sql(data) #only use once when moving csv data into sql
+csv_to_sql(data) #only use once when moving csv data into sql
 
-shingle()
+#shingle()
 
