@@ -1,48 +1,29 @@
-import React, { useState, useEffect } from "react";
-import { Box, TextField, Typography, Card, MenuItem, Grid } from "@mui/material";
+import React, { useState } from "react";
+import axios from "axios";
+import { Box, TextField, Typography, Card } from "@mui/material";
 import { motion } from "framer-motion";
 
-// Static mock data with dictionary-style categories
-const mockData = {
-  Country: ["USA", "Canada", "Mexico", "Germany", "France"],
-  ProductID: ["P123", "P456", "P789", "P101", "P112"],
-  Address: ["123 Elm St", "456 Oak St", "789 Pine St", "101 Maple Ave"],
-  DeliveryID: ["D001", "D002", "D003", "D004"],
-};
-
 const HomePage = () => {
-  // States
   const [searchTerm, setSearchTerm] = useState("");
-  const [dropdownOptions, setDropdownOptions] = useState([]);
   const [results, setResults] = useState([]);
   const [searchTime, setSearchTime] = useState(0); // Store search duration
 
-  // Update dropdown options
-  useEffect(() => {
+  const handleSearch = async () => {
     if (searchTerm) {
-      const filteredOptions = Object.keys(mockData).filter((key) =>
-        key.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setDropdownOptions(filteredOptions);
-    } else {
-      setDropdownOptions([]);
-    }
-  }, [searchTerm]);
-
-  const handleSearch = (category) => {
-    if (category) {
       const startTime = performance.now(); // Start timing
-  
-      setTimeout(() => {
-        setResults(mockData[category] || []);
+      
+      try {
+        const response = await axios.post("http://127.0.0.1:5000/search", { query: searchTerm });
         const endTime = performance.now(); // End timing
-        const preciseTime = endTime - startTime; // Full precision
-        setSearchTime(preciseTime); // Save raw value for display
-        console.log(`Results found in ${preciseTime} milliseconds.`);
-      }); 
+
+        setResults(response.data.results || []);
+        setSearchTime(endTime - startTime); // Save raw value for display
+        console.log(`Results found in ${endTime - startTime} milliseconds.`);
+      } catch (error) {
+        console.error("Error fetching search results:", error);
+      }
     }
   };
-  
 
   return (
     <Box
@@ -76,7 +57,7 @@ const HomePage = () => {
         </Typography>
       </motion.div>
 
-      {/* Search Bar with Dropdown */}
+      {/* Search Bar */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -85,44 +66,16 @@ const HomePage = () => {
       >
         <TextField
           variant="outlined"
-          placeholder="Search categories..."
+          placeholder="Search products..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyDown={(e) =>
-            e.key === "Enter" && dropdownOptions.length > 0 && handleSearch(dropdownOptions[0])
-          }
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           sx={{
             width: "100%",
             backgroundColor: "#fff",
             borderRadius: "5px",
           }}
         />
-        {dropdownOptions.length > 0 && (
-          <Box
-            sx={{
-              backgroundColor: "#fff",
-              boxShadow: 1,
-              borderRadius: "5px",
-              marginTop: "4px",
-              position: "absolute",
-              zIndex: 10,
-              width: "100%",
-              maxWidth: "500px",
-            }}
-          >
-            {dropdownOptions.map((option, index) => (
-              <MenuItem
-                key={index}
-                onClick={() => {
-                  setSearchTerm(option);
-                  handleSearch(option);
-                }}
-              >
-                {option}
-              </MenuItem>
-            ))}
-          </Box>
-        )}
       </motion.div>
 
       {/* Timer Display */}
@@ -142,7 +95,7 @@ const HomePage = () => {
         </Typography>
       )}
 
-      {/* Search Results in a Single Wide Blue Box */}
+      {/* Search Results */}
       {results.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 50 }}
@@ -163,25 +116,9 @@ const HomePage = () => {
             <Typography variant="h6" gutterBottom>
               Search Results:
             </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <Typography variant="body1" sx={{ fontWeight: "bold", marginBottom: "10px" }}>
-                  Without Minhash:
-                </Typography>
-                <Typography variant="body2" component="div" sx={{ whiteSpace: "pre-line" }}>
-                  {results.join("\n")}
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body1" sx={{ fontWeight: "bold", marginBottom: "10px" }}>
-                  With Minhash:
-                </Typography>
-                <Typography variant="body2" component="div" sx={{ whiteSpace: "pre-line" }}>
-                  {/* Placeholder for future minhash results */}
-                  (No results)
-                </Typography>
-              </Grid>
-            </Grid>
+            <Typography variant="body2" component="div" sx={{ whiteSpace: "pre-line" }}>
+              {results.join("\n")}
+            </Typography>
           </Card>
         </motion.div>
       )}

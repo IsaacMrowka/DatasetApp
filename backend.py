@@ -1,28 +1,28 @@
-import json, Flask
-from flask import jsonify, request
+import json
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.types import JSON
 from db_op import Superstore, engine
 
 Session = sessionmaker(bind=engine)
 session = Session()
 
-
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 #fetches the search query from frontend
-@app.route('/search', methods = ['POST','GET'])
+@app.route('/search', methods=['POST'])
 def search():
-    data = request.get_json
-    query_input = data.get('query')
+    data = request.get_json()
+    query_input = data.get('query', '')
 
     results = []
     for i in range(4):
-        product_name = session.query(Superstore).filter(Superstore.Row_ID == i).first()    
-        if product_name and query_input == product_name:
-            results.append(product_name.Category)
-    
-    return jsonify(results)
+        product = session.query(Superstore).filter(Superstore.Row_ID == i).first()
+        if product and query_input.lower() in product.Product_Name.lower():
+            results.append(product.Category)
+
+    return jsonify({"results": results})
 
 #compare and save data from DB that matches query
 #return jsonify that frontend will ask for
@@ -38,3 +38,6 @@ def jaccard(doc, i, j):
     intersection = len((set1).intersection(set2))
     union = len((set1).union(set2))
     return intersection/union
+
+if __name__ == "__main__":
+    app.run(debug=True)
