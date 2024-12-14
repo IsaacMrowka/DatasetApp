@@ -1,6 +1,10 @@
+import json
 import pandas as pd
+import math, hashlib
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.types import JSON
 from db_op import Superstore, engine
+
 
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -52,26 +56,43 @@ def generate_shingles(text, k):
         shingles.append(shingle)
     return shingles
 
-def shingle(k=3):
+def shingle(k):
     for i in range(5):
-        # Query the specific row by Row_ID
         product = session.query(Superstore).filter(Superstore.Row_ID == i).first()
-
-        if product and product.Product_Name:  # Check if the row exists and Product_Name is not null
-            # Generate shingles for the Product_Name
+        
+        if product and product.Product_Name:  #check if the row exists / Product_Name is not null
             shingled_name = generate_shingles(product.Product_Name, k)
-            shingled_string = ' '.join(shingled_name)  # Combine shingles into a single string
+            shingled_string = ' '.join(shingled_name)  #combine shingles into a single string
 
-            # Update the Shin_Prod_Name column for the row
-            product.Shin_Prod_Name = shingled_string
-
-    # Commit all changes to the database
+            product.product_shingle = shingled_string
     session.commit()
 
+def generate_minhash(shingled_text):
+        #splitting text since it is saved as a string instead of a list of shingles
+        text = shingled_text.split()
+        signature = []
+        for i in range(10):
+            min_hash = math.inf
+            for shingle in text:
+                hash_val = int(hashlib.sha1((str(shingle) + str(i)).encode()).hexdigest(), 16)
+                if hash_val < min_hash:
+                    min_hash = hash_val
+            signature.append(min_hash)
+        return signature
 
+def minhash():
+    #i=0 for range 1
+    for i in range(4):
+        shingle = session.query(Superstore).filter(Superstore.Row_ID == i).first()
+
+        if shingle and shingle.product_shingle:
+            minhash_sig = generate_minhash(shingle.product_shingle)
+            product_sig = json.dumps(minhash_sig)
+            shingle.product_minhash = product_sig
+    session.commit()
 
 data = openfile('superstore.csv') 
-csv_to_sql(data) #only use once when moving csv data into sql
+#csv_to_sql(data) #only use once when moving csv data into sql
 
-#shingle()
+shingle()
 
